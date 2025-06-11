@@ -63,3 +63,65 @@ This approach ensures you never run downstream logic until your upstream logic c
 
 
 
+
+
+                      EXAMPLE:
+
+
+# TASK A: Initialization / Preprocessing
+dbutils.widgets.text("input_path", "", "Input Path (optional)")
+
+# Simulate data loading
+data = [(1, "Alice"), (2, "Bob"), (3, "Carol")]
+df = spark.createDataFrame(data, ["id", "name"])
+df.createOrReplaceTempView("raw_users")
+
+print("✅ Task A complete: raw_users temp view created")
+
+
+# TASK B: Transformation
+# Depends on raw_users from Task A
+
+# Load view
+users_df = spark.sql("SELECT * FROM raw_users")
+
+# Simple transformation: rename 'name' to 'username'
+processed_df = users_df.withColumnRenamed("name", "username")
+processed_df.createOrReplaceTempView("processed_users")
+
+print("✅ Task B complete: processed_users temp view created")
+processed_df.show()
+
+
+
+# TASK C: Analytics or Statistics
+# Depends on raw_users from Task A
+
+# Load view
+users_df = spark.sql("SELECT * FROM raw_users")
+
+# Simple aggregation: count total users
+count_df = users_df.groupBy().count()
+
+print("✅ Task C complete: user count calculated")
+count_df.show()
+
+
+
+🛠️ To Set Up in Databricks:
+Upload each script into its own notebook:
+
+/Workspace/Jobs/TaskA
+
+/Workspace/Jobs/TaskB
+
+/Workspace/Jobs/TaskC
+
+Create a Job in the Databricks UI:
+
+Task A: No dependencies.
+
+Task B and Task C: Each depends on Task A.
+
+(Optional) Add parameters like input_path to Task A if reading from real sources.
+
